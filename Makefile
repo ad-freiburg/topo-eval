@@ -1,5 +1,5 @@
-TOPO = /home/patrick/repos/loom/build/topo
-TOPOEVAL = /home/patrick/repos/loom/build/topoeval
+TOPO = topo
+TOPOEVAL = topoeval
 MERGE_THRESHOLD = 50
 EVAL_THRESHOLD = 150
 
@@ -12,27 +12,27 @@ EVALS := $(patsubst %, eval-%, $(DATASETS))
 .SECONDARY:
 
 $(RESULTS_DIR)/%-topo.json: datasets/%.json
-	@mkdir -p results
+	@mkdir -p $(RESULTS_DIR)
 	cat $< | $(TOPO) -d $(MERGE_THRESHOLD) --write-stats > $@
 
 $(RESULTS_DIR)/%-topo-no-turns.json: datasets/%.json
-	@mkdir -p results
+	@mkdir -p $(RESULTS_DIR)
 	cat $< | $(TOPO) --no-infer-restrs -d $(MERGE_THRESHOLD) --write-stats > $@
 
-$(RESULTS_DIR)/%.random-nd.eval: datasets/%.json results/%-topo.json
-	@mkdir -p results
+$(RESULTS_DIR)/%.random-nd.eval: datasets/%.json $(RESULTS_DIR)/%-topo.json
+	@mkdir -p $(RESULTS_DIR)
 	$(TOPOEVAL) -d $(EVAL_THRESHOLD) $^ > $@
 
-$(RESULTS_DIR)/%.random-station.eval: datasets/%.json results/%-topo.json
-	@mkdir -p results
+$(RESULTS_DIR)/%.random-station.eval: datasets/%.json $(RESULTS_DIR)/%-topo.json
+	@mkdir -p $(RESULTS_DIR)
 	$(TOPOEVAL) --sample-stations -d $(EVAL_THRESHOLD) $^ > $@
 
-$(RESULTS_DIR)/%.random-nd-no-turns.eval: datasets/%.json results/%-topo-no-turns.json
-	@mkdir -p results
+$(RESULTS_DIR)/%.random-nd-no-turns.eval: datasets/%.json $(RESULTS_DIR)/%-topo-no-turns.json
+	@mkdir -p $(RESULTS_DIR)
 	$(TOPOEVAL) -d $(EVAL_THRESHOLD) $^ > $@
 
-$(RESULTS_DIR)/%.random-station-no-turns.eval: datasets/%.json results/%-topo-no-turns.json
-	@mkdir -p results
+$(RESULTS_DIR)/%.random-station-no-turns.eval: datasets/%.json $(RESULTS_DIR)/%-topo-no-turns.json
+	@mkdir -p $(RESULTS_DIR)
 	$(TOPOEVAL) --sample-stations -d $(EVAL_THRESHOLD) $^ > $@
 
 eval-%: $(RESULTS_DIR)/%-topo.json $(RESULTS_DIR)/%.random-nd.eval $(RESULTS_DIR)/%.random-station.eval  $(RESULTS_DIR)/%.random-nd-no-turns.eval $(RESULTS_DIR)/%.random-station-no-turns.eval
@@ -49,6 +49,9 @@ eval-%: $(RESULTS_DIR)/%-topo.json $(RESULTS_DIR)/%.random-nd.eval $(RESULTS_DIR
 	@cat $(RESULTS_DIR)/$*.random-station-no-turns.eval
 
 eval: | $(EVALS)
+
+help:
+	@cat README.md
 
 check:
 	@echo "topo version:" `$(TOPO) --version`
